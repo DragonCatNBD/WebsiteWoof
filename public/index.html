@@ -14,9 +14,13 @@
             --font-main: 'Courier New', Courier, monospace;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        /* CURSOR FIXES: Force hiding default cursor on EVERYTHING */
+        body, button, input, a, select, textarea, div, span { cursor: none !important; }
+
         body {
             background-color: var(--c-black); color: var(--c-text);
-            font-family: var(--font-main); width: 100vw; overflow-x: hidden; cursor: none;
+            font-family: var(--font-main); width: 100vw; overflow-x: hidden;
         }
         
         /* Grid & FX */
@@ -45,7 +49,7 @@
             z-index: 101; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); background-size: 100% 4px, 6px 100%;
         }
 
-        /* Cursor */
+        /* Custom Cursor */
         @media (hover: hover) and (pointer: fine) {
             .custom-cursor {
                 position: fixed; top: 0; left: 0; width: 20px; height: 20px;
@@ -67,11 +71,10 @@
         }
         .btn:hover { transform: translate(-2px, -2px); box-shadow: 8px 8px 0px 0px var(--c-red); background: var(--c-red); color: var(--c-black); }
         
-        /* Discord Link Button Style */
         .discord-btn {
             margin-top: 10px;
-            border-color: #5865F2; /* Discord Blue */
-            box-shadow: 6px 6px 0px 0px #5865F2; /* Blue Backdrop/Shadow */
+            border-color: #5865F2;
+            box-shadow: 6px 6px 0px 0px #5865F2;
             width: 100%;
             color: #fff;
         }
@@ -85,49 +88,34 @@
             width: 100%; background-color: var(--c-black); border: var(--border-thick);
             padding: 15px; color: var(--c-text); font-family: var(--font-main); font-size: 1rem;
             margin-bottom: 20px; outline: none; text-transform: uppercase; letter-spacing: 2px;
+            caret-color: transparent; /* Hides the text blinking cursor specifically */
         }
         .input-field:focus { box-shadow: var(--shadow-hard); }
-        .music-btn { position: fixed; top: 40px; right: 40px; z-index: 50; padding: 10px; font-size: 1.5rem; opacity: 0.7; transition: opacity 0.3s; background: none; border: none; color: white; }
+        
+        /* Music Button: Moved to global so it appears on splash screen */
+        .music-btn { 
+            position: fixed; top: 40px; right: 40px; z-index: 500; 
+            padding: 10px; font-size: 1.5rem; opacity: 0.7; 
+            transition: opacity 0.3s; background: none; border: none; color: white; 
+        }
         .music-btn:hover { opacity: 1; }
 
-        /* Layout */
         .full-screen-center { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100vh; position: relative; z-index: 10; }
         .lock-container { text-align: center; border: var(--border-thick); padding: 40px; box-shadow: var(--shadow-hard); background: #000; max-width: 400px; width: 90%; }
         
         #main-website { display: none; width: 100%; position: relative; }
         
-        /* --- HERO SECTION --- */
         .hero {
             height: 80vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            position: fixed; 
-            top: 0; left: 0; width: 100%;
-            z-index: 15; 
-            pointer-events: none; 
-            transition: opacity 0.5s ease, transform 0.5s ease;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; position: fixed; top: 0; left: 0; width: 100%;
+            z-index: 15; pointer-events: none; transition: opacity 0.5s ease, transform 0.5s ease;
         }
-
         .hero h1 {
-            font-size: 6rem;
-            font-weight: 900;
-            text-transform: uppercase;
-            color: var(--c-red);
-            animation: glitchShift 1s infinite alternate;
-            text-shadow: 4px 0 0 #000;
+            font-size: 6rem; font-weight: 900; text-transform: uppercase;
+            color: var(--c-red); animation: glitchShift 1s infinite alternate; text-shadow: 4px 0 0 #000;
         }
-
-        .hero p {
-            margin-top: 20px;
-            font-size: 1.2rem;
-            color: #fff;
-            opacity: 0.8;
-            letter-spacing: 2px;
-        }
-
+        .hero p { margin-top: 20px; font-size: 1.2rem; color: #fff; opacity: 0.8; letter-spacing: 2px; }
         @keyframes glitchShift {
             0% { color: var(--c-red); text-shadow: 4px 0 0 #000; transform: skew(0deg); }
             25% { color: #000; text-shadow: -2px 0 0 var(--c-red); transform: skew(2deg); }
@@ -142,7 +130,7 @@
         .project-grid { padding: 0 50px 50px 50px; padding-top: 80vh; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; position: relative; z-index: 20; }
         .card {
             background: var(--c-black); border: var(--border-thick); box-shadow: var(--shadow-hard);
-            padding: 0; overflow: hidden; transition: transform 0.2s; cursor: pointer;
+            padding: 0; overflow: hidden; transition: transform 0.2s; cursor: none !important;
         }
         .card:hover { transform: translateY(-5px); }
         .card-img { width: 100%; height: 200px; background: #222; overflow: hidden; position: relative; }
@@ -167,31 +155,28 @@
     <div class="overlay"></div>
     <div class="scanlines"></div>
 
-    <audio id="bg-music" loop>
+    <!-- 50% Volume Attribute Added -->
+    <audio id="bg-music" loop volume="0.5">
         <source src="Bgm1.mp3" type="audio/mp3">
     </audio>
 
-    <!-- Preload SFX -->
+    <!-- SFX -->
     <audio id="sfx-hover" src="hover.mp3"></audio>
     <audio id="sfx-click" src="click.mp3"></audio>
+
+    <!-- MUSIC BUTTON: Moved outside main-website so it appears on Splash -->
+    <button class="music-btn" onclick="toggleMusic()" title="Toggle Music">🔇</button>
 
     <div class="custom-cursor" id="cursor"></div>
 
     <!-- SPLASH SCREEN -->
     <div id="splash-screen" class="full-screen-center">
         <div class="lock-container">
-            <!-- REMOVED EMOJI -->
             <h2 style="margin-bottom:10px;">XYPH HUB</h2>
-            <!-- CHANGED TEXT -->
             <p style="margin-bottom:20px; color: #888;">Insert key to access</p>
-            
             <input type="text" id="key-input" class="input-field" placeholder="ENTER KEY" autocomplete="off">
             <button class="btn" id="unlock-btn" style="width:100%;">AUTHENTICATE</button>
-            
-            <!-- GET KEY BUTTON (Blue Theme) -->
-            <a href="https://discord.gg/NwGgCqBTMT" target="_blank" class="btn discord-btn">
-                GET KEY
-            </a>
+            <a href="https://discord.gg/NwGgCqBTMT" target="_blank" class="btn discord-btn">GET KEY</a>
         </div>
     </div>
 
@@ -206,7 +191,6 @@
             <div class="logo"><span>🃏</span> JESTER <span>|</span> XYPH</div>
             <button class="btn" onclick="location.reload()">LOGOUT</button>
         </header>
-        <button class="music-btn" onclick="toggleMusic()" title="Toggle Music">🎵</button>
         
         <div class="project-grid" id="projects-container"></div>
     </div>
@@ -233,8 +217,11 @@
         // --- AUDIO ENGINE ---
         const hoverSound = document.getElementById('sfx-hover');
         const clickSound = document.getElementById('sfx-click');
+        const bgMusic = document.getElementById('bg-music');
+        const musicBtn = document.querySelector('.music-btn');
         
         let lastHoverTime = 0;
+        let audioInitialized = false; // Track if music has started
 
         function playSound(type) {
             if (type === 'hover') {
@@ -249,6 +236,29 @@
                 clickSound.play().catch(e => {});
             }
         }
+
+        // Play Music on first interaction (anywhere)
+        document.addEventListener('click', () => {
+            if (!audioInitialized) {
+                bgMusic.play().then(() => {
+                    audioInitialized = true;
+                    musicBtn.innerHTML = "🔊";
+                    musicBtn.style.color = "var(--c-red)";
+                }).catch(e => console.log("Audio play blocked until interaction"));
+            }
+        }, { once: true });
+
+        window.toggleMusic = function() {
+            if (bgMusic.paused) {
+                bgMusic.play();
+                musicBtn.innerHTML = "🔊";
+                musicBtn.style.color = "var(--c-red)";
+            } else {
+                bgMusic.pause();
+                musicBtn.innerHTML = "🔇";
+                musicBtn.style.color = "var(--c-text)";
+            }
+        };
 
         const projects = [
             { title: "Xyph Hub", desc: "High-aulity script for roblox rivals!", img: "images/proj1.jpg", file: "Xyph Hub.zip" },
@@ -293,13 +303,6 @@
                     hero.style.transform = `translateY(${scrollY * 0.5}px)`;
                 }
             });
-
-            window.toggleMusic = function() {
-                const audio = document.getElementById('bg-music');
-                const btn = document.querySelector('.music-btn');
-                if (audio.paused) { audio.play(); btn.innerHTML = "🔊"; btn.style.color = "var(--c-red)"; } 
-                else { audio.pause(); btn.innerHTML = "🔇"; btn.style.color = "var(--c-text)"; }
-            };
 
             function notify(msg, isError = false) {
                 const t = document.createElement('div');
