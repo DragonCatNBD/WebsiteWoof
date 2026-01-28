@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZAI // SECURE GATEWAY</title>
+    
+    <style>
+        /* --- CSS VARIABLES --- */
+        :root {
+            --c-black: #050505;
+            --c-red: #ff0000;
+            --c-text: #ffffff;
+            --border-thick: 3px solid var(--c-red);
+            --shadow-hard: 6px 6px 0px 0px var(--c-red);
+            --font-main: 'Courier New', Courier, monospace;
+        }
+
+        /* --- RESET & BASE --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            background-color: var(--c-black);
+            color: var(--c-text);
+            font-family: var(--font-main);
+            width: 100vw;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Only hide default cursor on Desktop when JS is ready */
+        body.cursor-active { cursor: none; }
+
+        /* --- GRID BACKGROUND --- */
+        .grid-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: linear-gradient(var(--c-red) 1px, transparent 1px), linear-gradient(90deg, var(--c-red) 1px, transparent 1px);
+            background-size: 50px 50px; opacity: 0.15; z-index: -1; pointer-events: none;
+        }
+
+        /* --- CUSTOM CURSOR (Desktop Only) --- */
+        @media (hover: hover) and (pointer: fine) {
+            .custom-cursor {
+                position: fixed; top: 0; left: 0; width: 20px; height: 20px;
+                border: 2px solid var(--c-red); border-radius: 50%;
+                transform: translate(-50%, -50%); pointer-events: none; z-index: 99999;
+                transition: width 0.1s, height 0.1s, background-color 0.1s;
+                display: none; /* Hidden until JS loads */
+            }
+            .custom-cursor.visible { display: block; }
+            .custom-cursor.hovered { width: 8px; height: 8px; background-color: var(--c-red); }
+        }
+
+        /* --- COMPONENTS --- */
+        .btn {
+            background: var(--c-black); color: var(--c-text);
+            border: var(--border-thick); padding: 15px 30px;
+            font-family: var(--font-main); font-weight: bold; font-size: 1rem; text-transform: uppercase;
+            box-shadow: var(--shadow-hard); transition: all 0.2s;
+            display: inline-flex; align-items: center; justify-content: center; outline: none;
+        }
+        .btn:hover { transform: translate(-2px, -2px); box-shadow: 8px 8px 0px 0px var(--c-red); background: var(--c-red); color: var(--c-black); }
+        
+        .input-field {
+            width: 100%; 
+            background-color: var(--c-black); /* SOLID BLACK - No transparency */
+            border: var(--border-thick);
+            padding: 15px; color: var(--c-text); font-family: var(--font-main); font-size: 1rem;
+            margin-bottom: 20px; outline: none; text-transform: uppercase; letter-spacing: 2px;
+        }
+        .input-field:focus { box-shadow: var(--shadow-hard); }
+
+        /* --- LAYOUT SECTIONS --- */
+        .full-screen-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100vh;
+            position: relative;
+            z-index: 10;
+        }
+
+        .lock-container {
+            text-align: center; border: var(--border-thick); padding: 40px; 
+            box-shadow: var(--shadow-hard); background: #000; 
+            max-width: 400px; width: 90%;
+        }
+
+        /* --- MAIN WEBSITE (Hidden initially) --- */
+        #main-website { display: none; width: 100%; }
+        
+        header {
+            display: flex; justify-content: space-between; padding: 40px 50px; align-items: center;
+        }
+        
+        .logo { font-size: 1.5rem; font-weight: bold; }
+        .logo span { color: var(--c-red); }
+
+        .project-grid {
+            padding: 0 50px 50px 50px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .card {
+            background: var(--c-black); border: var(--border-thick); box-shadow: var(--shadow-hard);
+            padding: 0; overflow: hidden; transition: transform 0.2s;
+        }
+        .card:hover { transform: translateY(-5px); }
+        .card-img { width: 100%; height: 200px; background: #222; overflow: hidden; }
+        .card-img img { width: 100%; height: 100%; object-fit: cover; }
+        .card-body { padding: 20px; }
+        .card h3 { color: var(--c-red); margin-bottom: 10px; font-size: 1.2rem; }
+        .card p { font-size: 0.9rem; color: #aaa; }
+
+        /* --- UTILITIES --- */
+        .hidden { display: none !important; }
+        
+        #notification-area { position: fixed; bottom: 30px; right: 30px; z-index: 20000; }
+        .toast { background: var(--c-black); border: 2px solid var(--c-red); color: var(--c-text); padding: 15px 25px; margin-top: 10px; box-shadow: 4px 4px 0 #fff; animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+    </style>
+</head>
+<body>
+
+    <!-- BACKGROUND -->
+    <div class="grid-bg"></div>
+    <div class="custom-cursor" id="cursor"></div>
+
+    <!-- 1. SPLASH SCREEN (Visible by default) -->
+    <div id="splash-screen" class="full-screen-center">
+        <div class="lock-container">
+            <div style="font-size: 3rem; margin-bottom: 15px;">🔒</div>
+            <h2 style="margin-bottom:10px;">RESTRICTED AREA</h2>
+            <p style="margin-bottom:20px; color: #888;">ENTER ACCESS KEY FROM DISCORD</p>
+            <input type="text" id="key-input" class="input-field" placeholder="XXXX-XXXX-XXXX" autocomplete="off">
+            <button class="btn" id="unlock-btn" style="width:100%;">UNLOCK</button>
+        </div>
+    </div>
+
+    <!-- 2. MAIN WEBSITE (Hidden initially) -->
+    <div id="main-website">
+        <header>
+            <div class="logo">ZAI_<span>DEV</span></div>
+            <button class="btn" onclick="location.reload()">LOGOUT</button>
+        </header>
+
+        <div class="project-grid" id="projects-container">
+            <!-- Projects will be injected here by JS -->
+        </div>
+    </div>
+
+    <!-- NOTIFICATIONS -->
+    <div id="notification-area"></div>
+
+    <!-- FIREBASE SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+    <script>
+        // --- FIREBASE CONFIG (Using your keys) ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyA8NuqnzCKMGHE5wGP55P1W7C3Y5Jvw2Ow",
+            authDomain: "keywebsite1.firebaseapp.com",
+            databaseURL: "https://keywebsite1-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "keywebsite1",
+            storageBucket: "keywebsite1.firebasestorage.app",
+            messagingSenderId: "682049365888",
+            appId: "1:682049365888:web:2af87029f2bc044d87c365",
+            measurementId: "G-8NS0ZHZX9K"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // --- PROJECT DATA ---
+        const projects = [
+            { title: "NEON FLUX", desc: "Real-time data viz engine.", img: "https://picsum.photos/seed/flux/400/300" },
+            { title: "VOID RUNNER", desc: "3D Browser Game.", img: "https://picsum.photos/seed/void/400/300" },
+            { title: "CYBER DECK", desc: "Terminal interface.", img: "https://picsum.photos/seed/cyber/400/300" },
+            { title: "SYNTH WAVE", desc: "Audio synthesizer.", img: "https://picsum.photos/seed/synth/400/300" },
+            { title: "GRID LOCK", desc: "Security protocol.", img: "https://picsum.photos/seed/grid/400/300" },
+            { title: "PROJECT X", desc: "Classified data.", img: "https://picsum.photos/seed/x/400/300" }
+        ];
+
+        // --- APP LOGIC ---
+        window.onload = function() {
+            console.log("System Initializing...");
+
+            // 1. CURSOR LOGIC
+            const cursor = document.getElementById('cursor');
+            const body = document.body;
+            
+            // Check if cursor element exists and if user is on desktop
+            if (cursor && window.matchMedia("(hover: hover)").matches) {
+                // Make cursor visible
+                cursor.classList.add('visible');
+                // Hide default system cursor only if ours is ready
+                body.classList.add('cursor-active');
+
+                // Movement
+                document.addEventListener('mousemove', (e) => {
+                    cursor.style.left = e.clientX + 'px';
+                    cursor.style.top = e.clientY + 'px';
+                });
+
+                // Hover Effects
+                document.body.addEventListener('mouseover', (e) => {
+                    if (e.target.matches('button') || e.target.matches('input') || e.target.closest('.card')) {
+                        cursor.classList.add('hovered');
+                    } else {
+                        cursor.classList.remove('hovered');
+                    }
+                });
+            } else {
+                console.log("Touch device detected or cursor missing. Using default cursor.");
+            }
+
+            // 2. NOTIFICATIONS
+            function notify(msg, isError = false) {
+                const t = document.createElement('div');
+                t.className = 'toast'; t.innerText = msg;
+                if(isError) t.style.borderColor = 'red';
+                document.getElementById('notification-area').appendChild(t);
+                setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3000);
+            }
+
+            // 3. KEY VERIFICATION
+            const splash = document.getElementById('splash-screen');
+            const main = document.getElementById('main-website');
+            const unlockBtn = document.getElementById('unlock-btn');
+            const keyInput = document.getElementById('key-input');
+
+            function verifyKey() {
+                const key = keyInput.value.trim().toUpperCase();
+                if(!key) return;
+
+                notify("AUTHENTICATING...");
+
+                db.ref('access_keys/' + key).once('value')
+                    .then((snapshot) => {
+                        if (snapshot.exists()) {
+                            notify("ACCESS GRANTED");
+                            // Success Animation
+                            splash.style.opacity = '0';
+                            setTimeout(() => {
+                                splash.classList.add('hidden');
+                                main.style.display = 'block';
+                                loadProjects();
+                            }, 500);
+                        } else {
+                            notify("INVALID KEY", true);
+                            keyInput.style.borderColor = 'red';
+                            keyInput.value = '';
+                        }
+                    })
+                    .catch((error) => {
+                        console.error(error);
+                        notify("CONNECTION ERROR", true);
+                    });
+            }
+
+            unlockBtn.addEventListener('click', verifyKey);
+            keyInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') verifyKey(); });
+
+            // 4. LOAD PROJECTS
+            function loadProjects() {
+                const container = document.getElementById('projects-container');
+                projects.forEach(p => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.innerHTML = `
+                        <div class="card-img"><img src="${p.img}" alt="${p.title}"></div>
+                        <div class="card-body">
+                            <h3>${p.title}</h3>
+                            <p>${p.desc}</p>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            }
+        };
+    </script>
+</body>
+</html>
