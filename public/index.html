@@ -63,8 +63,24 @@
             font-family: var(--font-main); font-weight: bold; font-size: 1rem; text-transform: uppercase;
             box-shadow: var(--shadow-hard); transition: all 0.2s;
             display: inline-flex; align-items: center; justify-content: center; outline: none; gap: 10px;
+            text-decoration: none;
         }
         .btn:hover { transform: translate(-2px, -2px); box-shadow: 8px 8px 0px 0px var(--c-red); background: var(--c-red); color: var(--c-black); }
+        
+        /* Discord Link Button Style */
+        .discord-btn {
+            margin-top: 10px;
+            border-color: #5865F2; /* Discord Blue */
+            box-shadow: 6px 6px 0px 0px #5865F2; /* Blue Backdrop/Shadow */
+            width: 100%;
+            color: #fff;
+        }
+        .discord-btn:hover {
+            background: #5865F2;
+            color: black;
+            box-shadow: 8px 8px 0px 0px #0044aa;
+        }
+
         .input-field {
             width: 100%; background-color: var(--c-black); border: var(--border-thick);
             padding: 15px; color: var(--c-text); font-family: var(--font-main); font-size: 1rem;
@@ -88,10 +104,10 @@
             align-items: center;
             justify-content: center;
             text-align: center;
-            position: fixed; /* Stay in place until scrolled */
+            position: fixed; 
             top: 0; left: 0; width: 100%;
-            z-index: 15; /* Above grid, below header */
-            pointer-events: none; /* Allows clicking through */
+            z-index: 15; 
+            pointer-events: none; 
             transition: opacity 0.5s ease, transform 0.5s ease;
         }
 
@@ -123,7 +139,7 @@
         .logo { font-size: 1.5rem; font-weight: bold; display: flex; align-items: center; gap: 10px; }
         .logo span { color: var(--c-red); }
         
-        .project-grid { padding: 0 50px 50px 50px; padding-top: 80vh; /* Push grid below hero */ display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; position: relative; z-index: 20; }
+        .project-grid { padding: 0 50px 50px 50px; padding-top: 80vh; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; position: relative; z-index: 20; }
         .card {
             background: var(--c-black); border: var(--border-thick); box-shadow: var(--shadow-hard);
             padding: 0; overflow: hidden; transition: transform 0.2s; cursor: pointer;
@@ -155,22 +171,32 @@
         <source src="Bgm1.mp3" type="audio/mp3">
     </audio>
 
+    <!-- Preload SFX -->
+    <audio id="sfx-hover" src="hover.mp3"></audio>
+    <audio id="sfx-click" src="click.mp3"></audio>
+
     <div class="custom-cursor" id="cursor"></div>
 
     <!-- SPLASH SCREEN -->
     <div id="splash-screen" class="full-screen-center">
         <div class="lock-container">
-            <div style="font-size: 3rem; margin-bottom: 15px;">🃏</div>
+            <!-- REMOVED EMOJI -->
             <h2 style="margin-bottom:10px;">XYPH HUB</h2>
-            <p style="margin-bottom:20px; color: #888;">RESTRICTED ACCESS. KEY REQUIRED.</p>
+            <!-- CHANGED TEXT -->
+            <p style="margin-bottom:20px; color: #888;">Insert key to access</p>
+            
             <input type="text" id="key-input" class="input-field" placeholder="ENTER KEY" autocomplete="off">
             <button class="btn" id="unlock-btn" style="width:100%;">AUTHENTICATE</button>
+            
+            <!-- GET KEY BUTTON (Blue Theme) -->
+            <a href="https://discord.gg/NwGgCqBTMT" target="_blank" class="btn discord-btn">
+                GET KEY
+            </a>
         </div>
     </div>
 
     <!-- MAIN WEBSITE -->
     <div id="main-website">
-        <!-- HERO SECTION (New) -->
         <div class="hero" id="hero">
             <h1>JESTER</h1>
             <p>SCROLL DOWN FOR DOWNLOADS</p>
@@ -204,7 +230,26 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // --- FIX: Updated filenames to match bot.js exactly ---
+        // --- AUDIO ENGINE ---
+        const hoverSound = document.getElementById('sfx-hover');
+        const clickSound = document.getElementById('sfx-click');
+        
+        let lastHoverTime = 0;
+
+        function playSound(type) {
+            if (type === 'hover') {
+                const now = Date.now();
+                if (now - lastHoverTime > 150) {
+                    hoverSound.currentTime = 0;
+                    hoverSound.play().catch(e => {});
+                    lastHoverTime = now;
+                }
+            } else if (type === 'click') {
+                clickSound.currentTime = 0;
+                clickSound.play().catch(e => {});
+            }
+        }
+
         const projects = [
             { title: "Xyph Hub", desc: "High-aulity script for roblox rivals!", img: "images/proj1.jpg", file: "Xyph Hub.zip" },
             { title: "RFTAS", desc: "Tool for changing textures and skyboxes.", img: "images/proj2.jpg", file: "RFTAS.zip" },
@@ -218,26 +263,33 @@
             if (cursor && window.matchMedia("(hover: hover)").matches) {
                 cursor.classList.add('visible');
                 body.classList.add('cursor-active');
+                
                 document.addEventListener('mousemove', (e) => {
                     cursor.style.left = e.clientX + 'px'; cursor.style.top = e.clientY + 'px';
                 });
+
                 document.body.addEventListener('mouseover', (e) => {
                     if (e.target.matches('button') || e.target.matches('input') || e.target.closest('.card') || e.target.closest('.music-btn')) {
                         cursor.classList.add('hovered');
-                    } else { cursor.classList.remove('hovered'); }
+                        playSound('hover');
+                    } else {
+                        cursor.classList.remove('hovered');
+                    }
+                });
+
+                document.body.addEventListener('click', (e) => {
+                    if (e.target.closest('button') || e.target.closest('a') || e.target.closest('.card')) {
+                        playSound('click');
+                    }
                 });
             }
 
-            // --- NEW: SCROLL LOGIC FOR HERO ---
             window.addEventListener('scroll', () => {
                 const hero = document.getElementById('hero');
                 if (hero) {
                     const scrollY = window.scrollY;
-                    // Fade out as we scroll down
-                    // Opacity goes from 1 at 0px scroll, to 0 at 200px scroll
                     const opacity = 1 - (scrollY / 200);
                     hero.style.opacity = opacity;
-                    // Move it up slightly for parallax effect
                     hero.style.transform = `translateY(${scrollY * 0.5}px)`;
                 }
             });
