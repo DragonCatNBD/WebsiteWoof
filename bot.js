@@ -1,7 +1,7 @@
 require('dotenv').config();
 const { Client, GatewayIntentBits, Partials } = require('discord.js');
 const admin = require('firebase-admin');
-const serviceAccount = require('./service-account.json');
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 
 // --- FIREBASE SETUP ---
 // We use the database URL from your provided config
@@ -58,5 +58,6 @@ client.on('guildMemberAdd', async (member) => {
         console.error("Error sending DM:", error);
     }
 });
+
 
 client.login(process.env.DISCORD_BOT_TOKEN);
