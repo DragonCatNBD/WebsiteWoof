@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- 1. ADD YOUR FAVICON HERE -->
     <link rel="icon" type="image/png" href="images/your_icon.png"> 
     
     <title>XYPH HUB | JESTER</title>
@@ -17,7 +16,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             background-color: var(--c-black); color: var(--c-text);
-            font-family: var(--font-main); width: 100vw; min-height: 100vh; overflow-x: hidden; cursor: none;
+            font-family: var(--font-main); width: 100vw; overflow-x: hidden; cursor: none;
         }
         
         /* Grid & FX */
@@ -78,11 +77,53 @@
         /* Layout */
         .full-screen-center { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100vh; position: relative; z-index: 10; }
         .lock-container { text-align: center; border: var(--border-thick); padding: 40px; box-shadow: var(--shadow-hard); background: #000; max-width: 400px; width: 90%; }
-        #main-website { display: none; width: 100%; }
-        header { display: flex; justify-content: space-between; padding: 40px 50px; align-items: center; position: relative; z-index: 20; }
+        
+        #main-website { display: none; width: 100%; position: relative; }
+        
+        /* --- HERO SECTION --- */
+        .hero {
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: fixed; /* Stay in place until scrolled */
+            top: 0; left: 0; width: 100%;
+            z-index: 15; /* Above grid, below header */
+            pointer-events: none; /* Allows clicking through */
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .hero h1 {
+            font-size: 6rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            color: var(--c-red);
+            animation: glitchShift 1s infinite alternate;
+            text-shadow: 4px 0 0 #000;
+        }
+
+        .hero p {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            color: #fff;
+            opacity: 0.8;
+            letter-spacing: 2px;
+        }
+
+        @keyframes glitchShift {
+            0% { color: var(--c-red); text-shadow: 4px 0 0 #000; transform: skew(0deg); }
+            25% { color: #000; text-shadow: -2px 0 0 var(--c-red); transform: skew(2deg); }
+            50% { color: var(--c-red); text-shadow: 4px 0 0 #000; transform: skew(-2deg); }
+            100% { color: #000; text-shadow: -2px 0 0 var(--c-red); transform: skew(0deg); }
+        }
+
+        header { display: flex; justify-content: space-between; padding: 40px 50px; align-items: center; position: relative; z-index: 20; pointer-events: auto; }
         .logo { font-size: 1.5rem; font-weight: bold; display: flex; align-items: center; gap: 10px; }
         .logo span { color: var(--c-red); }
-        .project-grid { padding: 0 50px 50px 50px; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; position: relative; z-index: 20; }
+        
+        .project-grid { padding: 0 50px 50px 50px; padding-top: 80vh; /* Push grid below hero */ display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; position: relative; z-index: 20; }
         .card {
             background: var(--c-black); border: var(--border-thick); box-shadow: var(--shadow-hard);
             padding: 0; overflow: hidden; transition: transform 0.2s; cursor: pointer;
@@ -110,13 +151,13 @@
     <div class="overlay"></div>
     <div class="scanlines"></div>
 
-    <!-- 2. CHANGE MUSIC SOURCE TO YOUR FILE -->
     <audio id="bg-music" loop>
         <source src="Bgm1.mp3" type="audio/mp3">
     </audio>
 
     <div class="custom-cursor" id="cursor"></div>
 
+    <!-- SPLASH SCREEN -->
     <div id="splash-screen" class="full-screen-center">
         <div class="lock-container">
             <div style="font-size: 3rem; margin-bottom: 15px;">🃏</div>
@@ -127,18 +168,25 @@
         </div>
     </div>
 
+    <!-- MAIN WEBSITE -->
     <div id="main-website">
+        <!-- HERO SECTION (New) -->
+        <div class="hero" id="hero">
+            <h1>JESTER</h1>
+            <p>SCROLL DOWN FOR DOWNLOADS</p>
+        </div>
+
         <header>
             <div class="logo"><span>🃏</span> JESTER <span>|</span> XYPH</div>
             <button class="btn" onclick="location.reload()">LOGOUT</button>
         </header>
         <button class="music-btn" onclick="toggleMusic()" title="Toggle Music">🎵</button>
+        
         <div class="project-grid" id="projects-container"></div>
     </div>
 
     <div id="notification-area"></div>
 
-    <!-- FIREBASE SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
@@ -156,18 +204,16 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // 3. UPDATE PROJECT DATA
-        // "img" should point to your file in /public/images/
-        // "file" should match the filename in /secure_downloads/ (CASE SENSITIVE)
+        // --- FIX: Updated filenames to match bot.js exactly ---
         const projects = [
-            { title: "Xyph Hub", desc: "High-aulity script for roblox rivals!", img: "images/proj1.jpg", file: "proj1.zip" },
-            { title: "RFTAS", desc: "Tool for changing textures and skyboxes.", img: "images/proj2.jpg", file: "proj.zip" },
+            { title: "Xyph Hub", desc: "High-aulity script for roblox rivals!", img: "images/proj1.jpg", file: "Xyph Hub.zip" },
+            { title: "RFTAS", desc: "Tool for changing textures and skyboxes.", img: "images/proj2.jpg", file: "RFTAS.zip" },
         ];
 
         window.onload = function() {
             const cursor = document.getElementById('cursor');
             const body = document.body;
-            let userKey = localStorage.getItem('xyph_key') || ''; // Check if we have a key saved
+            let userKey = localStorage.getItem('xyph_key') || '';
 
             if (cursor && window.matchMedia("(hover: hover)").matches) {
                 cursor.classList.add('visible');
@@ -181,6 +227,20 @@
                     } else { cursor.classList.remove('hovered'); }
                 });
             }
+
+            // --- NEW: SCROLL LOGIC FOR HERO ---
+            window.addEventListener('scroll', () => {
+                const hero = document.getElementById('hero');
+                if (hero) {
+                    const scrollY = window.scrollY;
+                    // Fade out as we scroll down
+                    // Opacity goes from 1 at 0px scroll, to 0 at 200px scroll
+                    const opacity = 1 - (scrollY / 200);
+                    hero.style.opacity = opacity;
+                    // Move it up slightly for parallax effect
+                    hero.style.transform = `translateY(${scrollY * 0.5}px)`;
+                }
+            });
 
             window.toggleMusic = function() {
                 const audio = document.getElementById('bg-music');
@@ -197,21 +257,16 @@
                 setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3000);
             }
 
-            // 4. SECURE DOWNLOAD FUNCTION
             window.downloadProject = function(filename) {
                 if (!userKey) {
                     notify("SESSION EXPIRED. PLEASE LOGIN AGAIN.", true);
                     location.reload();
                     return;
                 }
-                
                 notify(`REQUESTING SECURE DOWNLOAD: ${filename}...`);
-                
-                // Call the backend route with the key
                 window.location.href = `/download/${filename}?key=${userKey}`;
             };
 
-            // 5. AUTH LOGIC
             const splash = document.getElementById('splash-screen');
             const main = document.getElementById('main-website');
             const unlockBtn = document.getElementById('unlock-btn');
@@ -223,8 +278,8 @@
                 notify("AUTHENTICATING...");
                 db.ref('access_keys/' + key).once('value').then((snapshot) => {
                     if (snapshot.exists()) {
-                        userKey = key; // Save key for downloads
-                        localStorage.setItem('xyph_key', key); // Save to browser
+                        userKey = key;
+                        localStorage.setItem('xyph_key', key);
                         notify("ACCESS GRANTED. WELCOME, JESTER.");
                         splash.style.opacity = '0';
                         setTimeout(() => {
@@ -241,7 +296,6 @@
             unlockBtn.addEventListener('click', verifyKey);
             keyInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') verifyKey(); });
 
-            // 6. LOAD PROJECTS
             function loadProjects() {
                 const container = document.getElementById('projects-container');
                 projects.forEach(p => {
@@ -250,7 +304,6 @@
                     card.onclick = () => downloadProject(p.file);
                     card.innerHTML = `
                         <div class="card-img">
-                            <!-- Image path points to /public/images/ -->
                             <img src="${p.img}" onerror="this.src='https://picsum.photos/400/300'" alt="${p.title}">
                             <div class="download-hint">DOWNLOAD</div>
                         </div>
@@ -266,4 +319,3 @@
     </script>
 </body>
 </html>
-
