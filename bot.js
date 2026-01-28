@@ -17,35 +17,40 @@ const db = admin.database();
 const webApp = express();
 const PORT = process.env.PORT || 3000;
 
-// 1. Serve Public Files (HTML, CSS, Images, Music) normally
-// These are accessible to everyone
+// 1. Serve Public Files normally
 webApp.use(express.static(path.join(__dirname, 'public')));
 
-// 2. PROTECTED DOWNLOAD ROUTE
-// This route checks the key before sending the file
+// 2. SECURE DOWNLOAD REDIRECT ROUTE
+// This maps the fake filename to the REAL Google Drive / Mega link
+const fileLinks = {
+    // KEY = the filename you type in index.html
+    // VALUE = the actual URL where the file is hosted
+    "Xyph Hub.zip": "https://drive.google.com/file/d/1ZXHHeJiTSZdzmOpckVX_3Dz6xHvYbvIy/view?usp=sharing",
+    "RFTAS.zip": "https://drive.google.com/file/d/1VLg_rSYcVUOXya8AndDNmjBKbipmP97y/view?usp=sharing",
+};
+
 webApp.get('/download/:filename', async (req, res) => {
     const filename = req.params.filename;
-    const userKey = req.query.key; // Key is passed in URL like ?key=XXXX
+    const userKey = req.query.key;
 
     console.log(`Download request for ${filename} with key ${userKey}`);
 
-    if (!userKey) {
-        return res.status(403).send("Access Denied: No Key Provided");
-    }
+    if (!userKey) return res.status(403).send("Access Denied: No Key Provided");
 
     try {
         // Check if key is valid in Firebase
         const snapshot = await db.ref('access_keys/' + userKey).once('value');
         
         if (snapshot.exists()) {
-            // Key is valid! Send the file from the 'secure_downloads' folder
-            const filePath = path.join(__dirname, 'secure_downloads', filename);
-            return res.download(filePath, (err) => {
-                if (err) {
-                    console.error("File download error:", err);
-                    res.status(404).send("File not found.");
-                }
-            });
+            // Key is valid! Look up the real link
+            const realUrl = fileLinks[filename];
+
+            if (realUrl) {
+                console.log(`Redirecting to: ${realUrl}`);
+                return res.redirect(realUrl);
+            } else {
+                res.status(404).send("File not found on server.");
+            }
         } else {
             res.status(403).send("Access Denied: Invalid Key");
         }
@@ -59,7 +64,7 @@ webApp.listen(PORT, () => {
     console.log(`System running on port ${PORT}`);
 });
 
-// --- DISCORD BOT (Same as before) ---
+// --- DISCORD BOT (Unchanged) ---
 const client = new Client({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers],
     partials: [Partials.Channel] 
