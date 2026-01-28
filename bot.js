@@ -9,7 +9,7 @@ const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://keywebsite1-default-rtdb.europe-west1.firebasedatabase.app"
+  databaseURL: "https://keywebsite1-default-rtdb.europe-west1.firebasedatabase.app" 
 });
 const db = admin.database();
 
@@ -71,3 +71,4 @@ client.on('guildMemberAdd', async (member) => {
 });
 
 client.login(process.env.DISCORD_BOT_TOKEN);
+
